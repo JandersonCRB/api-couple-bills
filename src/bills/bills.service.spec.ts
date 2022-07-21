@@ -96,39 +96,42 @@ describe('BillsService', () => {
     expect(bills[3].date).toBeInstanceOf(Date);
   });
 
-  it('should calculate all bills and total = 0', async () => {
-    await createExampleBills();
-    const { total, debtor, creditor } = await billsService.calculate();
-    expect(total).toBe(0);
-    expect(debtor).toBe(null);
-    expect(creditor).toBe(null);
-  });
-
-  it('should calculate all bills and total = 300 and debtor FIRST', async () => {
-    await createExampleBills();
-    await billsRepository.save({
-      title: 'Café',
-      payer: Payer.SECOND,
-      priceInCents: 300,
-      date: new Date(),
+  describe('bills calculate', () => {
+    beforeEach(async () => {
+      await createExampleBills();
     });
-    const { total, debtor, creditor } = await billsService.calculate();
-    expect(total).toBe(300);
-    expect(debtor).toBe(Payer.FIRST);
-    expect(creditor).toBe(Payer.SECOND);
-  });
 
-  it('should calculate all bills and total = 300 and debtor SECOND', async () => {
-    await createExampleBills();
-    await billsRepository.save({
-      title: 'Café',
-      payer: Payer.FIRST,
-      priceInCents: 300,
-      date: new Date(),
+    it('should calculate all bills and total = 0', async () => {
+      const { total, debtor, creditor } = await billsService.calculate();
+      expect(total).toBe(0);
+      expect(debtor).toBe(null);
+      expect(creditor).toBe(null);
     });
-    const { total, debtor, creditor } = await billsService.calculate();
-    expect(total).toBe(300);
-    expect(debtor).toBe(Payer.SECOND);
-    expect(creditor).toBe(Payer.FIRST);
+
+    it('should calculate all bills and total = 300 and debtor FIRST', async () => {
+      await billsRepository.save({
+        title: 'Café',
+        payer: Payer.SECOND,
+        priceInCents: 300,
+        date: new Date(),
+      });
+      const { total, debtor, creditor } = await billsService.calculate();
+      expect(total).toBe(300);
+      expect(debtor).toBe(Payer.FIRST);
+      expect(creditor).toBe(Payer.SECOND);
+    });
+
+    it('should calculate all bills and total = 300 and debtor SECOND', async () => {
+      await billsRepository.save({
+        title: 'Café',
+        payer: Payer.FIRST,
+        priceInCents: 300,
+        date: new Date(),
+      });
+      const { total, debtor, creditor } = await billsService.calculate();
+      expect(total).toBe(300);
+      expect(debtor).toBe(Payer.SECOND);
+      expect(creditor).toBe(Payer.FIRST);
+    });
   });
 });
